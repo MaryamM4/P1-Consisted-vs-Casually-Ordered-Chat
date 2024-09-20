@@ -10,7 +10,7 @@
 import java.net.*; // for Socket
 import java.io.*; // for IOException
 
-public class Chatserver implements Runnable { 
+public class ClientConnection implements Runnable { 
 
     /**
     * This method will be invoked when the object's thread is started. 
