@@ -12,10 +12,12 @@ import java.io.*; // for IOException
 
 public class ChatClient {
     private Socket socket;        // A socket connection to a chat server
+
     private InputStream rawIn;    // An input stream from the server
     private DataInputStream in;   // A filtered input stream from the server
     private DataOutputStream out; // A filtered output stream to the server
-    private BufferedReader stdin; // The standart input
+
+    private BufferedReader stdin; // The standart input (for keyboard input)
 
     /**
     * Creates a socket, contacts to the server with a given server ip name
