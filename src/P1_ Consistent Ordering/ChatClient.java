@@ -93,6 +93,6 @@ public class ChatClient {
         int port = Integer.parseInt( args[2] );
 
         // Instantiate the main body of ChatClient application.
-        new ChatClient( args[0], args[1], port );
+        ChatClient client = new ChatClient( args[0], args[1], port );
     }
 }

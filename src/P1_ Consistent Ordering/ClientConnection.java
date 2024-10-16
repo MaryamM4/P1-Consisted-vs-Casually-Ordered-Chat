@@ -10,26 +10,27 @@
 import java.net.*; // for Socket
 import java.io.*; // for IOException
 
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.List;
+import java.util.Scanner;
+
 
 
 public class ClientConnection implements Runnable { 
-    public static const ERROR = "error"; 
+    public static final String ERROR = "error"; 
 
     // Queues mssgs from all clients in 'author: mssg' format.
     private static List<String> mssgQueue; 
 
-    public const String name;
-    private Socket socket;
+    public final String name;
+    private final Socket socket;
 
-    private InputStream rawIn;
-    private DataInputStream in;
     private OutputStream rawOut;
     private DataOutputStream out;
+    private InputStream rawIn;
+    private DataInputStream in;
 
 
-    public ClientConnection(String name, Socket socket, DataInputStream in, DataOutputStream out) {
+    public ClientConnection(String name, Socket socket, DataInputStream in, DataOutputStream out) {       
         this.name = name;
         this.socket = socket;
 
@@ -42,19 +43,28 @@ public class ClientConnection implements Runnable {
     */
     @Override
     public void run() {
-        while (!Thread.currentThread().isInterrupted()) {
-            String mssg = this.readMessageAsString(); 
+        String reasonForDisconnect = ""; 
 
-            if (mssg == ClientConnection.ERROR) {
-                this.disconnect("Read Failure.");
-                break;
+        try {
+            while (!Thread.currentThread().isInterrupted()) {
+                String mssg = this.readMessageAsString(); 
 
-            } else {
-                mssgQueue.add(this.name + ": " + mssg);
+                if (mssg == null ? ClientConnection.ERROR == null : mssg.equals(ClientConnection.ERROR)) {
+                    reasonForDisconnect = "Read Failure.";
+                    break;
+
+                } else {
+                    mssgQueue.add(this.name + ": " + mssg);
+                }
             }
-        }
 
-        this.Thread.stop(); // Properly kill thread.
+        } catch (Exception err) {
+            reasonForDisconnect = err.getMessage();
+
+        } finally {
+            this.disconnect(reasonForDisconnect);
+            Thread.currentThread().interrupt();
+        }
     }
 
     /**
@@ -66,26 +76,26 @@ public class ClientConnection implements Runnable {
         try {
             // readUTF is blocking, so ensure socket has data to read before calling
             if (rawIn.available() > 0) {
-                String mssg = in.readUTF();
+                mssg = in.readUTF();
             }
         
-        } catch (Exception err) {
-            return ClientConnection.ERROR;
+        } catch (IOException err) {
+            mssg = ClientConnection.ERROR;
         }
 
         return mssg;
     }
 
-    public Scannr readMessage() {
-        Scanner input;
+    public Scanner readMessage() {
+        Scanner input = null;
 
         try {
-            if (inputStream.available() > 0) {
-                input = new Scanner(socket.getInputStream);
+            if (rawIn.available() > 0) {
+                input = new Scanner(socket.getInputStream());
             }
 
-        } catch (Exception err) {
-            input = Scanner.error;
+        } catch (IOException err) {
+            System.err.println("ClientConnection Error reading message: " + err.getMessage());
         }
 
         return input;
@@ -116,7 +126,7 @@ public class ClientConnection implements Runnable {
 
         // Close the socket, and stop the thread. 
         socket.close();
-        currentThread.stop();
+        Thread.currentThread().interrupt();
     }
 
     public void disconnect() {
@@ -130,5 +140,6 @@ public class ClientConnection implements Runnable {
 
         return ""; 
     }
+
 }
 
